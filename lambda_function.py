@@ -49,7 +49,7 @@ def lambda_handler(event, context):
 
                     #upload the excel file to S3
                     s3_client.upload_fileobj(
-                        io.BytesIO(df_excel),
+                        df_excel,
                         Bucket=destination_bucket_name,
                         Key=file_name + '-' + datetime.now().strftime('%Y-%m-%d-%H-%M-%S') + '.xlsx'
                     )
