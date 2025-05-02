@@ -22,11 +22,18 @@ def lambda_handler(event, context):
                 # Extract file name without extension
                 file_name_without_extension = os.path.splitext(obj['Key'])[0]
                 logger.info(f'File name without extension: {file_name_without_extension}')
-                
-                s3_client.copy_object(
-                    Bucket=destination_bucket_name,
-                    CopySource={'Bucket': source_bucket_name, 'Key': obj['Key']},
-                    Key=file_name_without_extension + '-' + datetime.now().strftime('%Y-%m-%d-%H-%M-%S') + '.csv'
+                try:
+                    s3_client.copy_object(
+                            Bucket=destination_bucket_name,
+                            CopySource={'Bucket': source_bucket_name, 'Key': obj['Key']},
+                            Key=file_name_without_extension + '-' + datetime.now().strftime('%Y-%m-%d-%H-%M-%S') + '.csv'
                 )
-                s3_client.delete_object(Bucket=source_bucket_name, Key=obj['Key'])
-                logger.info('CSV File moved to target bucket')
+                    s3_client.delete_object(Bucket=source_bucket_name, Key=obj['Key'])
+                    logger.info('CSV File moved to target bucket')
+                    
+                except Exception as e:
+                    logger.error(f'Error moving file: {e}')
+                    return {
+                        'statusCode': 500,
+                        'body': json.dumps('Error moving file')
+                    }
