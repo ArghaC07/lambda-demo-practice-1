@@ -48,8 +48,15 @@ def lambda_handler(event, context):
                                         file_name + \
                                         '-' + datetime.now().strftime('%Y-%m-%d-%H-%M-%S')\
                                         +'.xlsx' 
-                    df.to_excel(destination_path, index=False, engine='openpyxl')
-                    logger.info('CSV File converted to Excel format')
+                    df_excel = df.to_excel(index=False, engine='openpyxl')
+
+                    #upload the excel file to S3
+                    s3_client.upload_fileobj(
+                        io.BytesIO(df_excel),
+                        Bucket=destination_bucket_name,
+                        Key=file_name + '-' + datetime.now().strftime('%Y-%m-%d-%H-%M-%S') + '.xlsx'
+                    )
+                    logger.info('Excel file uploaded to target bucket')
                     
                     # DELETE the original CSV file from the source bucket
                     s3_client.delete_object(Bucket=source_bucket_name, Key=obj['Key'])
