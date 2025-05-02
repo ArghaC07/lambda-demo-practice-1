@@ -45,10 +45,10 @@ def lambda_handler(event, context):
                 try:
                     destination_path = "s3://" + \
                                         destination_bucket_name + '/' + \
-                                        file_name_without_extension + \
+                                        file_name + \
                                         '-' + datetime.now().strftime('%Y-%m-%d-%H-%M-%S')\
                                         +'.xlsx' 
-                    df.to_excel(io.BytesIO(), index=False, engine='openpyxl')
+                    df.to_excel(destination_path, index=False, engine='openpyxl')
                     logger.info('CSV File converted to Excel format')
                     
                     # DELETE the original CSV file from the source bucket
