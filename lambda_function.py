@@ -10,7 +10,7 @@ logger.setLevel(logging.INFO)
 
 def lambda_handler(event, context):
     s3_client = boto3.client('s3')
-    source_bucket_name = 'source-bucket-4302'
+    source_bucket_name = 'source-bucket-4303'
     destination_bucket_name = 'target-bucket-4302'
     response = s3_client.list_objects_v2(Bucket=source_bucket_name)
     if 'Contents' in response:
