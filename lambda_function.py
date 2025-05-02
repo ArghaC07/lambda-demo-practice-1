@@ -43,12 +43,9 @@ def lambda_handler(event, context):
 
                 # Convert the DataFrame to excel format
                 try:
-                    destination_path = "s3://" + \
-                                        destination_bucket_name + '/' + \
-                                        file_name + \
-                                        '-' + datetime.now().strftime('%Y-%m-%d-%H-%M-%S')\
-                                        +'.xlsx' 
-                    df_excel = df.to_excel(index=False, engine='openpyxl')
+                    excel_buffer = io.BytesIO()
+                    df_excel = df.to_excel(excel_buffer, index=False, engine='openpyxl')
+                    excel_buffer.seek(0)  # Move the cursor to the beginning of the stream
 
                     #upload the excel file to S3
                     s3_client.upload_fileobj(
