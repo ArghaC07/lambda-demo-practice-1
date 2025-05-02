@@ -4,6 +4,8 @@ from datetime import datetime
 import logging
 import os
 import pandas as pd
+import io
+import openpyxl
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -20,9 +22,14 @@ def lambda_handler(event, context):
             if obj['Key'].endswith('.csv'):
                 logger.info('CSV File found in source bucket')
 
+                # Extract file name without extension
+                file_name = os.path.splitext(obj['Key'])[0]
+                logger.info(f'File name without extension: {file_name}')
+
                 # read the CSV file from S3
                 try:
-                    df = pd.read_csv(f's3://{source_bucket_name}/{obj["Key"]}')
+                    s3_body = s3_client.get_object(Bucket=source_bucket_name, Key=obj['Key'])
+                    df = pd.read_csv(io.BytesIO(s3_body['Body'].read()))
                     logger.info('CSV File read successfully')
                     logger.info(f'CSV Data: {df}')
                 except Exception as e:
@@ -32,9 +39,7 @@ def lambda_handler(event, context):
                         'body': json.dumps('Error reading CSV file')
                     }
 
-                # Extract file name without extension
-                file_name_without_extension = os.path.splitext(obj['Key'])[0]
-                logger.info(f'File name without extension: {file_name_without_extension}')
+             
 
                 # Convert the DataFrame to excel format
                 try:
@@ -43,7 +48,7 @@ def lambda_handler(event, context):
                                         file_name_without_extension + \
                                         '-' + datetime.now().strftime('%Y-%m-%d-%H-%M-%S')\
                                         +'.xlsx' 
-                    df.to_excel(destination_path, index=False)
+                    df.to_excel(io.BytesIO(), index=False, engine='openpyxl')
                     logger.info('CSV File converted to Excel format')
                     
                     # DELETE the original CSV file from the source bucket
